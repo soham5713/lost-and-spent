@@ -6,9 +6,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Receipt } from "lucide-react";
+import { useNavigate } from "react-router-dom"; // Added for proper navigation
 
 const LoginPage = () => {
   const [error, setError] = useState("");
+  const navigate = useNavigate(); // Added for proper navigation
 
   const handleGoogleLogin = async () => {
     const provider = new GoogleAuthProvider();
@@ -21,7 +23,7 @@ const LoginPage = () => {
       const userDoc = await getDoc(userDocRef);
       
       if (!userDoc.exists()) {
-        // First time user - create their document and redirect to add-expense
+        // First time user - create their document
         await setDoc(userDocRef, {
           email: user.email,
           displayName: user.displayName,
@@ -29,11 +31,11 @@ const LoginPage = () => {
           createdAt: new Date()
         });
         
-        // Also set up default budget settings
+        // Set up default budget settings with stationery instead of groceries
         const budgetDocRef = doc(db, `users/${user.uid}/settings`, 'budgets');
         await setDoc(budgetDocRef, {
           food: 0,
-          groceries: 0,
+          stationery: 0, // Changed from groceries to stationery
           transport: 0,
           utilities: 0,
           entertainment: 0,
@@ -41,10 +43,10 @@ const LoginPage = () => {
           totalBudget: 0
         });
         
-        window.location.href = "/add-expense";
+        navigate("/"); // Changed to use React Router navigation
       } else {
         // Returning user - redirect to expenses list
-        window.location.href = "/expenses";
+        navigate("/expenses"); // Changed to use React Router navigation
       }
     } catch (error) {
       console.error("Login error:", error);

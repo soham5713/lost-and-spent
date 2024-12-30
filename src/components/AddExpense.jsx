@@ -27,7 +27,7 @@ const AddExpense = ({ user }) => {
 
   const categories = [
     { id: "food", name: "Food", icon: "🍽️" },
-    { id: "groceries", name: "Stationery", icon: "🛒" },
+    { id: "stationery", name: "Stationery", icon: "🛒" },
     { id: "transport", name: "Transport", icon: "🚗" },
     { id: "utilities", name: "Utilities", icon: "💡" },
     { id: "entertainment", name: "Entertainment", icon: "🎬" },
@@ -151,7 +151,7 @@ const AddExpense = ({ user }) => {
                 id="name" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Weekly Stationery" 
+                placeholder="e.g., Weekly Groceries" 
                 className="h-12" 
                 required
               />

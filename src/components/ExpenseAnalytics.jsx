@@ -24,7 +24,7 @@ const ExpenseAnalytics = ({ user }) => {
   
   const categories = {
     food: { name: "Food", icon: "🍽️" },
-    groceries: { name: "Stationery", icon: "🛒" },
+    stationery: { name: "Stationery", icon: "🛒" },
     transport: { name: "Transport", icon: "🚗" },
     utilities: { name: "Utilities", icon: "💡" },
     entertainment: { name: "Entertainment", icon: "🎬" },

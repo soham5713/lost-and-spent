@@ -38,7 +38,7 @@ const BudgetSettings = ({ user }) => {
 
   const categories = [
     { id: 'food', name: 'Food', icon: '🍽️', color: 'bg-red-500' },
-    { id: 'stationery', name: 'stationery', icon: '🛒', color: 'bg-green-500' },
+    { id: 'stationery', name: 'Stationery', icon: '🛒', color: 'bg-green-500' },
     { id: 'transport', name: 'Transport', icon: '🚗', color: 'bg-blue-500' },
     { id: 'utilities', name: 'Utilities', icon: '💡', color: 'bg-yellow-500' },
     { id: 'entertainment', name: 'Entertainment', icon: '🎬', color: 'bg-purple-500' },
