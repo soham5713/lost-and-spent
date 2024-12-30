@@ -12,6 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { createNotification, checkBudgetAndNotify, notifyLargeExpense, createWeeklySpendingReminder } from '..//firebase/notificationsUtils';
 
 const BudgetProgress = ({ category, categoryInfo, spent, budget }) => {
   const progress = budget > 0 ? (spent / budget) * 100 : 0;
@@ -108,6 +109,7 @@ const ExpenseList = ({ user }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [budgets, setBudgets] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [lastWeeklyReminder, setLastWeeklyReminder] = useState(null);
   const navigate = useNavigate();
 
   const categories = {
@@ -132,12 +134,31 @@ const ExpenseList = ({ user }) => {
       }
     };
 
+    // Create weekly spending reminder if needed
+    const checkWeeklyReminder = async () => {
+      const now = new Date();
+      const lastReminder = lastWeeklyReminder || new Date(0);
+      const daysSinceLastReminder = (now - lastReminder) / (1000 * 60 * 60 * 24);
+
+      if (daysSinceLastReminder >= 7) {
+        const weeklyTotal = expenses
+          .filter(exp => {
+            const expDate = new Date(exp.date);
+            return (now - expDate) <= 7 * 24 * 60 * 60 * 1000;
+          })
+          .reduce((sum, exp) => sum + exp.amount, 0);
+
+        await createWeeklySpendingReminder(user.uid, weeklyTotal);
+        setLastWeeklyReminder(now);
+      }
+    };
+
     const q = query(
       collection(db, `users/${user.uid}/expenses`),
       orderBy('createdAt', 'desc')
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
       try {
         const expenseData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -145,8 +166,37 @@ const ExpenseList = ({ user }) => {
           date: doc.data().date?.toDate?.() || new Date(doc.data().date),
           amount: parseFloat(doc.data().amount) || 0
         }));
+
+        // Process new expenses for notifications
+        const changes = snapshot.docChanges();
+        for (const change of changes) {
+          if (change.type === "added") {
+            const expense = {
+              id: change.doc.id,
+              ...change.doc.data(),
+              amount: parseFloat(change.doc.data().amount) || 0
+            };
+
+            // Notify for large expenses
+            await notifyLargeExpense(user.uid, expense);
+
+            // Check budget notifications
+            if (budgets) {
+              const categorySpent = expenseData
+                .filter(exp => exp.category === expense.category)
+                .reduce((sum, exp) => sum + exp.amount, 0);
+              
+              const categoryBudget = budgets[expense.category];
+              if (categoryBudget) {
+                await checkBudgetAndNotify(user.uid, expense.category, categorySpent, categoryBudget);
+              }
+            }
+          }
+        }
+
         setExpenses(expenseData);
         setTotalAmount(expenseData.reduce((sum, exp) => sum + exp.amount, 0));
+        await checkWeeklyReminder();
         setLoading(false);
       } catch (error) {
         console.error('Error processing expenses:', error);
@@ -157,12 +207,22 @@ const ExpenseList = ({ user }) => {
 
     fetchBudgets();
     return () => unsubscribe();
-  }, [user.uid]);
+  }, [user.uid, lastWeeklyReminder]);
 
   const handleDelete = async (expenseId) => {
     try {
       await deleteDoc(doc(db, `users/${user.uid}/expenses`, expenseId));
       toast.success("Expense deleted successfully");
+      
+      // Notify about significant deletion
+      const deletedExpense = expenses.find(exp => exp.id === expenseId);
+      if (deletedExpense && deletedExpense.amount >= 5000) {
+        await createNotification(user.uid, {
+          type: 'expense_reminder',
+          title: 'Large Expense Deleted',
+          message: `A large expense of ₹${deletedExpense.amount.toLocaleString('en-IN')} was deleted from ${deletedExpense.category}.`
+        });
+      }
     } catch (error) {
       console.error('Error deleting expense:', error);
       toast.error("Failed to delete expense");
@@ -287,7 +347,7 @@ const ExpenseList = ({ user }) => {
                     <Receipt className="h-16 w-16 text-muted-foreground mb-6" />
                     <h3 className="text-xl font-semibold mb-2">No expenses found</h3>
                     <p className="text-muted-foreground mb-8">
-                      {activeTab === 'all' 
+                      {activeTab === 'all'
                         ? "Add your first expense to get started"
                         : `No expenses in ${categories[activeTab].name} category`}
                     </p>

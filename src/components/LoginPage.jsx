@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,8 +14,40 @@ const LoginPage = () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      window.location.href = "/expenses";
+      const user = result.user;
+      
+      // Check if this is a first-time user
+      const userDocRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (!userDoc.exists()) {
+        // First time user - create their document and redirect to add-expense
+        await setDoc(userDocRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          createdAt: new Date()
+        });
+        
+        // Also set up default budget settings
+        const budgetDocRef = doc(db, `users/${user.uid}/settings`, 'budgets');
+        await setDoc(budgetDocRef, {
+          food: 0,
+          groceries: 0,
+          transport: 0,
+          utilities: 0,
+          entertainment: 0,
+          other: 0,
+          totalBudget: 0
+        });
+        
+        window.location.href = "/add-expense";
+      } else {
+        // Returning user - redirect to expenses list
+        window.location.href = "/expenses";
+      }
     } catch (error) {
+      console.error("Login error:", error);
       setError("Failed to login with Google. Please try again.");
     }
   };

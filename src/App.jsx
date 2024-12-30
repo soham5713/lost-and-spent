@@ -6,6 +6,8 @@ import ExpenseList from "./components/ExpenseList";
 import ExpenseAnalytics from "./components/ExpenseAnalytics";
 import LoginPage from "./components/LoginPage";
 import Navbar from "./components/Navbar";
+import ProfilePage from "./components/ProfilePage";
+import Notifications from "./components/Notifications";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import { auth } from "./firebase/firebase";
 
@@ -55,6 +57,14 @@ const App = () => {
             <Route
               path="/settings"
               element={user ? <BudgetSettings user={user} /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/profile"
+              element={user ? <ProfilePage user={user} /> : <Navigate to="/" />}
+            />
+            <Route
+              path="/notifications"
+              element={user ? <Notifications user={user} /> : <Navigate to="/" />}
             />
           </Routes>
         </div>

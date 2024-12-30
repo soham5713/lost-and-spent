@@ -6,16 +6,16 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Receipt, LogOut, Settings, User, Bell, BarChart } from 'lucide-react';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 
-const Navbar = ({ user }) => {
+const Navbar = ({ user, unreadCount = 0 }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,14 +38,14 @@ const Navbar = ({ user }) => {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center space-x-8">
-            <Link 
-              to="/expenses" 
+            <Link
+              to="/expenses"
               className="flex items-center space-x-3 transition-colors hover:text-primary"
             >
               <Receipt className="h-6 w-6 text-primary" />
               <span className="font-semibold text-lg hidden sm:inline-block">Expense Tracker</span>
             </Link>
-            
+
             <div className="hidden md:flex space-x-4">
               <Button
                 variant={isActiveRoute('/expenses') ? 'default' : 'ghost'}
@@ -87,27 +87,30 @@ const Navbar = ({ user }) => {
               </DropdownMenu>
             </div>
 
-            <Button 
-              variant="ghost" 
+            <Button
+              variant="ghost"
               size="icon"
               className="relative hidden sm:flex"
+              onClick={() => navigate('/notifications')}
             >
               <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
-                2
-              </span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
+                  {unreadCount}
+                </span>
+              )}
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="relative h-10 w-10 rounded-full"
                   aria-label="User menu"
                 >
                   <Avatar className="h-10 w-10">
-                    <AvatarImage 
-                      src={user.photoURL} 
+                    <AvatarImage
+                      src={user.photoURL}
                       alt={user.displayName}
                       className="object-cover"
                     />
@@ -134,8 +137,8 @@ const Navbar = ({ user }) => {
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout} 
+                <DropdownMenuItem
+                  onClick={handleLogout}
                   className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
