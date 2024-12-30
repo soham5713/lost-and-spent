@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc } from 'firebase/firestore';
+import { useState, useEffect, useRef } from 'react';
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createNotification, checkBudgetAndNotify, notifyLargeExpense, createWeeklySpendingReminder } from '..//firebase/notificationsUtils';
+import { createNotification, checkBudgetAndNotify, notifyLargeExpense } from '../firebase/notificationsUtils';
 
 const BudgetProgress = ({ category, categoryInfo, spent, budget }) => {
   const progress = budget > 0 ? (spent / budget) * 100 : 0;
@@ -60,22 +60,24 @@ const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
   <Card className="group hover:shadow-md transition-all duration-200">
     <CardContent className="p-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+        <div className="flex items-center space-x-4 min-w-0"> {/* Added min-w-0 to allow truncation */}
+          <div className="h-14 w-14 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
             <span className="text-2xl">{categories[expense.category]?.icon || "📝"}</span>
           </div>
-          <div className="space-y-1">
-            <h3 className="text-lg font-semibold">{expense.name}</h3>
+          <div className="space-y-1 min-w-0"> {/* Added min-w-0 to allow truncation */}
+            <h3 className="text-lg font-semibold truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
+              {expense.name}
+            </h3>
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4" />
-              <span>{format(expense.date, 'MMM d, yyyy')}</span>
-              <Badge variant="secondary" className="ml-2">
+              <Calendar className="h-4 w-4 shrink-0" />
+              <span className="shrink-0">{format(expense.date, 'MMM d, yyyy')}</span>
+              <Badge variant="secondary" className="ml-2 shrink-0">
                 {categories[expense.category]?.name || "Other"}
               </Badge>
             </div>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 ml-4 shrink-0">
           <span className="text-xl font-semibold">₹{expense.amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -109,7 +111,8 @@ const ExpenseList = ({ user }) => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [budgets, setBudgets] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
-  const [lastWeeklyReminder, setLastWeeklyReminder] = useState(null);
+  const lastReminderRef = useRef(null);
+
   const navigate = useNavigate();
 
   const categories = {
@@ -119,6 +122,61 @@ const ExpenseList = ({ user }) => {
     utilities: { name: "Utilities", icon: "💡" },
     entertainment: { name: "Entertainment", icon: "🎬" },
     other: { name: "Other", icon: "📝" },
+  };
+
+  const createWeeklySpendingReminder = async (weeklyTotal) => {
+    try {
+      const reminderDoc = doc(db, `users/${user.uid}/settings`, 'lastWeeklyReminder');
+      const now = new Date();
+      
+      // Store the reminder timestamp
+      await setDoc(reminderDoc, {
+        lastReminderDate: now,
+        amount: weeklyTotal
+      });
+
+      // Create the notification
+      await createNotification(user.uid, {
+        type: 'weekly_spending',
+        title: 'Weekly Spending Update',
+        message: `You've spent ₹${weeklyTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })} this week.`,
+        createdAt: now
+      });
+
+      lastReminderRef.current = now;
+    } catch (error) {
+      console.error('Error creating weekly reminder:', error);
+    }
+  };
+
+  const checkAndCreateWeeklyReminder = async () => {
+    try {
+      const reminderDoc = await getDoc(doc(db, `users/${user.uid}/settings`, 'lastWeeklyReminder'));
+      const now = new Date();
+      const lastReminder = reminderDoc.exists() 
+        ? reminderDoc.data().lastReminderDate.toDate() 
+        : new Date(0);
+
+      const daysSinceLastReminder = Math.floor((now - lastReminder) / (1000 * 60 * 60 * 24));
+
+      if (daysSinceLastReminder >= 7) {
+        // Calculate spending for the current week
+        const weekStart = new Date(now);
+        weekStart.setHours(0, 0, 0, 0);
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of current week
+
+        const weeklyTotal = expenses
+          .filter(exp => {
+            const expDate = exp.date instanceof Date ? exp.date : new Date(exp.date);
+            return expDate >= weekStart;
+          })
+          .reduce((sum, exp) => sum + exp.amount, 0);
+
+        await createWeeklySpendingReminder(weeklyTotal);
+      }
+    } catch (error) {
+      console.error('Error checking weekly reminder:', error);
+    }
   };
 
   useEffect(() => {
@@ -131,25 +189,6 @@ const ExpenseList = ({ user }) => {
       } catch (error) {
         console.error('Error fetching budgets:', error);
         toast.error("Failed to fetch budget information");
-      }
-    };
-
-    // Create weekly spending reminder if needed
-    const checkWeeklyReminder = async () => {
-      const now = new Date();
-      const lastReminder = lastWeeklyReminder || new Date(0);
-      const daysSinceLastReminder = (now - lastReminder) / (1000 * 60 * 60 * 24);
-
-      if (daysSinceLastReminder >= 7) {
-        const weeklyTotal = expenses
-          .filter(exp => {
-            const expDate = new Date(exp.date);
-            return (now - expDate) <= 7 * 24 * 60 * 60 * 1000;
-          })
-          .reduce((sum, exp) => sum + exp.amount, 0);
-
-        await createWeeklySpendingReminder(user.uid, weeklyTotal);
-        setLastWeeklyReminder(now);
       }
     };
 
@@ -196,7 +235,7 @@ const ExpenseList = ({ user }) => {
 
         setExpenses(expenseData);
         setTotalAmount(expenseData.reduce((sum, exp) => sum + exp.amount, 0));
-        await checkWeeklyReminder();
+        await checkAndCreateWeeklyReminder();
         setLoading(false);
       } catch (error) {
         console.error('Error processing expenses:', error);
@@ -207,7 +246,7 @@ const ExpenseList = ({ user }) => {
 
     fetchBudgets();
     return () => unsubscribe();
-  }, [user.uid, lastWeeklyReminder]);
+  }, [user.uid]);
 
   const handleDelete = async (expenseId) => {
     try {
@@ -323,10 +362,10 @@ const ExpenseList = ({ user }) => {
             <TabsList className="mb-6 w-full justify-start space-x-2 overflow-x-auto">
               <TabsTrigger value="all" className="px-4">All</TabsTrigger>
               {Object.entries(categories).map(([id, category]) => (
-                <TabsTrigger key={id} value={id} className="px-4">
-                  <span className="mr-2">{category.icon}</span>
-                  {category.name}
-                </TabsTrigger>
+                <TabsTrigger key={id} value={id} className="px-4 whitespace-nowrap"> {/* Added whitespace-nowrap */}
+                <span className="mr-2">{category.icon}</span>
+                {category.name}
+              </TabsTrigger>
               ))}
             </TabsList>
             
@@ -343,7 +382,7 @@ const ExpenseList = ({ user }) => {
                     />
                   ))
                 ) : (
-                  <Card className="flex flex-col items-center justify-center p-16 text-center">
+                  <Card className="flex flex-col items-center justify-center p-16 text-center whitespace-nowrap">
                     <Receipt className="h-16 w-16 text-muted-foreground mb-6" />
                     <h3 className="text-xl font-semibold mb-2">No expenses found</h3>
                     <p className="text-muted-foreground mb-8">

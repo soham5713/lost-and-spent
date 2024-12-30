@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, updateDoc, doc, orderBy, limit } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { format } from 'date-fns';
-import { AlertCircle, Bell, CheckCircle2, Receipt, PiggyBank } from 'lucide-react';
+import { format, startOfWeek } from 'date-fns';
+import { AlertCircle, Bell, CheckCircle2, Receipt } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from 'sonner';
 
@@ -40,14 +40,14 @@ const NotificationCard = ({ notification, onMarkAsRead }) => {
     <Card className={`transition-all duration-200 ${notification.read ? 'bg-muted/50' : 'bg-background'}`}>
       <CardContent className="p-6">
         <div className="flex gap-4">
-          <div className="mt-1">
+          <div className="mt-1 flex-shrink-0">
             {getIcon()}
           </div>
-          <div className="flex-1 space-y-1">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h4 className="font-semibold">{notification.title}</h4>
-                <Badge variant={getBadgeVariant()}>
+          <div className="flex-1 min-w-0 space-y-1">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <h4 className="font-semibold truncate">{notification.title}</h4>
+                <Badge variant={getBadgeVariant()} className="flex-shrink-0">
                   {notification.type.replace('_', ' ').toUpperCase()}
                 </Badge>
               </div>
@@ -56,11 +56,12 @@ const NotificationCard = ({ notification, onMarkAsRead }) => {
                 size="sm"
                 onClick={() => onMarkAsRead(notification.id)}
                 disabled={notification.read}
+                className="flex-shrink-0"
               >
                 <CheckCircle2 className="h-4 w-4" />
               </Button>
             </div>
-            <p className="text-sm text-muted-foreground">{notification.message}</p>
+            <p className="text-sm text-muted-foreground truncate">{notification.message}</p>
             <p className="text-xs text-muted-foreground">
               {format(notification.createdAt.toDate(), 'MMM d, yyyy h:mm a')}
             </p>
@@ -71,26 +72,63 @@ const NotificationCard = ({ notification, onMarkAsRead }) => {
   );
 };
 
+const getWeekKey = (date) => {
+  return startOfWeek(date).getTime().toString();
+};
+
 const Notifications = ({ user }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchNotifications();
-  }, [user.uid]);
+    if (user?.uid) {
+      fetchNotifications();
+    }
+  }, [user?.uid]);
 
   const fetchNotifications = async () => {
+    if (!user?.uid) return;
+
     try {
       const notificationsRef = collection(db, `users/${user.uid}/notifications`);
-      const q = query(notificationsRef, where('createdAt', '>=', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)));
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const q = query(
+        notificationsRef,
+        where('createdAt', '>=', thirtyDaysAgo),
+        orderBy('createdAt', 'desc'),
+        limit(50)
+      );
+      
       const querySnapshot = await getDocs(q);
       
-      const notificationsData = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      const weeklyNotifications = new Map();
+      const otherNotifications = [];
       
-      setNotifications(notificationsData.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate()));
+      querySnapshot.forEach((doc) => {
+        const notification = {
+          id: doc.id,
+          ...doc.data()
+        };
+
+        if (notification.type === 'weekly_spending') {
+          const weekKey = getWeekKey(notification.createdAt.toDate());
+          if (!weeklyNotifications.has(weekKey) || 
+              notification.createdAt.toDate() > weeklyNotifications.get(weekKey).createdAt.toDate()) {
+            weeklyNotifications.set(weekKey, notification);
+          }
+        } else {
+          otherNotifications.push(notification);
+        }
+      });
+
+      const allNotifications = [
+        ...Array.from(weeklyNotifications.values()),
+        ...otherNotifications
+      ].sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate());
+
+      setNotifications(allNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast.error('Failed to load notifications');
@@ -100,17 +138,22 @@ const Notifications = ({ user }) => {
   };
 
   const handleMarkAsRead = async (notificationId) => {
+    if (!user?.uid) return;
+
     try {
-      await updateDoc(doc(db, `users/${user.uid}/notifications`, notificationId), {
+      const notificationRef = doc(db, `users/${user.uid}/notifications`, notificationId);
+      await updateDoc(notificationRef, {
         read: true,
         readAt: new Date()
       });
       
-      setNotifications(notifications.map(notification => 
-        notification.id === notificationId 
-          ? { ...notification, read: true, readAt: new Date() }
-          : notification
-      ));
+      setNotifications(prev => 
+        prev.map(notification => 
+          notification.id === notificationId 
+            ? { ...notification, read: true, readAt: new Date() }
+            : notification
+        )
+      );
       
       toast.success('Notification marked as read');
     } catch (error) {
@@ -120,6 +163,8 @@ const Notifications = ({ user }) => {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (!user?.uid) return;
+
     try {
       const unreadNotifications = notifications.filter(n => !n.read);
       
@@ -130,7 +175,7 @@ const Notifications = ({ user }) => {
         })
       ));
 
-      setNotifications(notifications.map(notification => ({
+      setNotifications(prev => prev.map(notification => ({
         ...notification,
         read: true,
         readAt: new Date()
