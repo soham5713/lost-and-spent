@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import AddExpense from "./components/AddExpense";
-// import BudgetSettings from "./components/BudgetSettings";
+import BudgetSettings from "./components/BudgetSettings";
 import ExpenseList from "./components/ExpenseList";
 import ExpenseAnalytics from "./components/ExpenseAnalytics";
 import LoginPage from "./components/LoginPage";
@@ -52,10 +52,10 @@ const App = () => {
               path="/analytics"
               element={user ? <ExpenseAnalytics user={user} /> : <Navigate to="/" />}
             />
-            {/* <Route
+            <Route
               path="/settings"
               element={user ? <BudgetSettings user={user} /> : <Navigate to="/" />}
-            /> */}
+            />
           </Routes>
         </div>
       </Router>

@@ -1,307 +1,281 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
+import React, { useState, useEffect } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/firebase';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, Save, Loader2 } from "lucide-react";
-import { toast } from "sonner";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { AlertCircle, Save, RotateCcw, PiggyBank } from "lucide-react";
+import { toast } from 'sonner';
 
 const BudgetSettings = ({ user }) => {
-    const [budgets, setBudgets] = useState({});
-    const [initialBudgets, setInitialBudgets] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [errors, setErrors] = useState({});
-    const [touched, setTouched] = useState({});
-    const [totalBudget, setTotalBudget] = useState(0);
-    const [isDirty, setIsDirty] = useState(false);
-    const [showExitPrompt, setShowExitPrompt] = useState(false);
+  const [budgets, setBudgets] = useState({
+    food: '',
+    stationery: '',
+    transport: '',
+    utilities: '',
+    entertainment: '',
+    other: ''
+  });
+  const [totalBudget, setTotalBudget] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
 
-    const categories = [
-        { id: "groceries", name: "Groceries", icon: "🛒", recommended: 30 },
-        { id: "transport", name: "Transport", icon: "🚗", recommended: 15 },
-        { id: "utilities", name: "Utilities", icon: "💡", recommended: 25 },
-        { id: "entertainment", name: "Entertainment", icon: "🎬", recommended: 10 },
-        { id: "other", name: "Other", icon: "📝", recommended: 20 }
-    ];
+  const categories = [
+    { id: 'food', name: 'Food', icon: '🍽️', color: 'bg-red-500' },
+    { id: 'stationery', name: 'stationery', icon: '🛒', color: 'bg-green-500' },
+    { id: 'transport', name: 'Transport', icon: '🚗', color: 'bg-blue-500' },
+    { id: 'utilities', name: 'Utilities', icon: '💡', color: 'bg-yellow-500' },
+    { id: 'entertainment', name: 'Entertainment', icon: '🎬', color: 'bg-purple-500' },
+    { id: 'other', name: 'Other', icon: '📝', color: 'bg-gray-500' }
+  ];
 
+  const calculateTotal = (budgetValues) => {
+    return Object.values(budgetValues)
+      .reduce((sum, value) => sum + (parseFloat(value) || 0), 0)
+      .toFixed(2);
+  };
+
+  useEffect(() => {
     const fetchBudgets = async () => {
-        setLoading(true);
-        try {
-            const docRef = doc(db, `users/${user.uid}/settings`, 'budgets');
-            const docSnap = await getDoc(docRef);
-            const fetchedBudgets = docSnap.exists()
-                ? docSnap.data()
-                : categories.reduce((acc, category) => ({ ...acc, [category.id]: 0 }), {});
-
-            setBudgets(fetchedBudgets);
-            setInitialBudgets(fetchedBudgets);
-        } catch (error) {
-            toast.error("Failed to fetch budgets");
-        } finally {
-            setLoading(false);
+      try {
+        const budgetDoc = await getDoc(doc(db, `users/${user.uid}/settings`, 'budgets'));
+        if (budgetDoc.exists()) {
+          const data = budgetDoc.data();
+          const budgetData = {
+            food: data.food?.toString() || '',
+            stationery: data.stationery?.toString() || '',
+            transport: data.transport?.toString() || '',
+            utilities: data.utilities?.toString() || '',
+            entertainment: data.entertainment?.toString() || '',
+            other: data.other?.toString() || ''
+          };
+          setBudgets(budgetData);
+          setTotalBudget(data.totalBudget?.toString() || '');
         }
+      } catch (error) {
+        console.error('Error fetching budgets:', error);
+        setError('Failed to load budget settings');
+      } finally {
+        setLoading(false);
+      }
     };
 
-    useEffect(() => {
-        fetchBudgets();
-    }, [user.uid]);
+    fetchBudgets();
+  }, [user.uid]);
 
-    useEffect(() => {
-        const total = Object.values(budgets).reduce((sum, value) => sum + (parseFloat(value) || 0), 0);
-        if (total !== totalBudget) {
-            setTotalBudget(total);
-        }
+  const handleTotalBudgetChange = (value) => {
+    setTotalBudget(value);
+  };
 
-        const hasChanges = Object.entries(budgets).some(([key, value]) => {
-            const initialValue = initialBudgets[key] || 0;
-            const currentValue = parseFloat(value) || 0;
-            return Math.abs(initialValue - currentValue) > 0.001; // Float comparison
-        });
-        setIsDirty(hasChanges);
-    }, [budgets, initialBudgets, totalBudget]);
+  const handleInputChange = (category, value) => {
+    setBudgets(prev => {
+      const newBudgets = {
+        ...prev,
+        [category]: value
+      };
+      return newBudgets;
+    });
+  };
 
+  const handleReset = () => {
+    setBudgets({
+      food: '',
+      stationery: '',
+      transport: '',
+      utilities: '',
+      entertainment: '',
+      other: ''
+    });
+    setTotalBudget('');
+    toast.success('Budget settings reset');
+  };
 
-    // Add beforeunload event listener
-    useEffect(() => {
-        const handleBeforeUnload = (e) => {
-            if (isDirty) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    setError(null);
 
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-    }, [isDirty]);
+    try {
+      const parsedBudgets = {
+        ...Object.entries(budgets).reduce((acc, [key, value]) => ({
+          ...acc,
+          [key]: value ? parseFloat(value) : 0
+        }), {}),
+        totalBudget: totalBudget ? parseFloat(totalBudget) : 0
+      };
 
-    const validateBudget = (value, categoryId) => {
-        const errors = {};
-        const amount = parseFloat(value);
-        if (!/^\d*(\.\d{1,2})?$/.test(value)) {
-            errors.invalid = "Please enter a valid amount (up to 2 decimal places)";
-        } else if (amount < 0) {
-            errors.negative = "Budget cannot be negative";
-        }
-        return errors;
-    };
-
-    const validateAllBudgets = () => {
-        const newErrors = {};
-        let hasErrors = false;
-
-        for (const [category, value] of Object.entries(budgets)) {
-            const categoryErrors = validateBudget(value, category);
-            if (Object.keys(categoryErrors).length > 0) {
-                newErrors[category] = categoryErrors;
-                hasErrors = true;
-            }
-        }
-
-        setErrors(newErrors);
-        return !hasErrors;
-    };
-
-    const handleBudgetChange = (category, value) => {
-        // Only allow numbers and decimal point
-        const newValue = value.replace(/[^\d.]/g, '');
-
-        // Prevent multiple decimal points
-        if (newValue.split('.').length > 2) return;
-
-        // Limit decimal places to 2
-        if (newValue.includes('.') && newValue.split('.')[1].length > 2) return;
-
-        setBudgets(prev => ({
-            ...prev,
-            [category]: newValue
-        }));
-
-        setTouched(prev => ({
-            ...prev,
-            [category]: true
-        }));
-
-        const validationErrors = validateBudget(newValue, category);
-        setErrors(prev => ({
-            ...prev,
-            [category]: validationErrors
-        }));
-    };
-
-    const handleSaveBudgets = async () => {
-        if (!validateAllBudgets()) {
-            toast.error("Please fix the errors before saving");
-            return;
-        }
-
-        setSaving(true);
-        try {
-            const processedBudgets = Object.entries(budgets).reduce((acc, [key, value]) => {
-                const numValue = parseFloat(value) || 0;
-                acc[key] = numValue;
-                return acc;
-            }, {});
-
-            await setDoc(doc(db, `users/${user.uid}/settings`, 'budgets'), processedBudgets);
-            setInitialBudgets(processedBudgets);
-            setTouched({});
-            setIsDirty(false);
-            toast.success("Budgets saved successfully");
-        } catch (error) {
-            toast.error("Failed to save budgets");
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const handleReset = () => {
-        setBudgets(initialBudgets);
-        setTouched({});
-        setErrors({});
-        setIsDirty(false);
-        setShowExitPrompt(false);
-    };
-
-    if (loading) {
-        return (
-            <div className="container mx-auto max-w-2xl py-8 px-4">
-                <Card>
-                    <CardHeader>
-                        <Skeleton className="h-8 w-64 mb-2" />
-                        <Skeleton className="h-4 w-48" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-6">
-                            {Array(5).fill(null).map((_, i) => (
-                                <div key={i} className="space-y-2">
-                                    <Skeleton className="h-4 w-32" />
-                                    <Skeleton className="h-10 w-full" />
-                                </div>
-                            ))}
-                            <Skeleton className="h-10 w-full" />
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
+      await setDoc(doc(db, `users/${user.uid}/settings`, 'budgets'), parsedBudgets);
+      toast.success('Budget settings saved successfully');
+    } catch (error) {
+      console.error('Error saving budgets:', error);
+      setError('Failed to save budget settings');
+      toast.error('Failed to save budget settings');
+    } finally {
+      setSaving(false);
     }
+  };
 
+  const getCurrentTotal = () => {
+    return calculateTotal(budgets);
+  };
+
+  const getBudgetAllocationPercentage = (categoryAmount) => {
+    const total = getCurrentTotal();
+    return total > 0 ? (parseFloat(categoryAmount) / parseFloat(total)) * 100 : 0;
+  };
+
+  if (loading) {
     return (
-        <>
-            <div className="container mx-auto max-w-2xl py-8 px-4">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Monthly Budget Settings</CardTitle>
-                        <CardDescription>Set your monthly budget limits for each category</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-6">
-                            <div className="p-4 bg-primary/10 rounded-lg">
-                                <div className="flex justify-between items-center mb-2">
-                                    <span className="font-semibold">Total Monthly Budget</span>
-                                    <span className="text-xl font-bold">₹{totalBudget.toFixed(2)}</span>
-                                </div>
-                                <Progress value={100} className="h-2" />
-                            </div>
+      <div className="container mx-auto max-w-2xl py-8 px-4 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
+      </div>
+    );
+  }
 
-                            {categories.map((category) => (
-                                <div key={category.id} className="space-y-2">
-                                    <Label className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <span>{category.icon}</span>
-                                            <span>{category.name}</span>
-                                        </div>
-                                        <span className="text-sm text-muted-foreground">
-                                            Recommended: {category.recommended}%
-                                        </span>
-                                    </Label>
-                                    <div className="relative">
-                                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
-                                        <Input
-                                            type="text"
-                                            value={budgets[category.id] || ""}
-                                            onChange={(e) => handleBudgetChange(category.id, e.target.value)}
-                                            className={`pl-8 ${touched[category.id] && errors[category.id] ? "border-red-500" : ""
-                                                }`}
-                                            placeholder="Enter monthly budget"
-                                        />
-                                    </div>
-                                    {touched[category.id] && errors[category.id] && Object.entries(errors[category.id]).map(([key, error]) => (
-                                        <Alert key={key} variant="destructive">
-                                            <AlertCircle className="h-4 w-4" />
-                                            <AlertDescription>{error}</AlertDescription>
-                                        </Alert>
-                                    ))}
-                                    {budgets[category.id] && !errors[category.id] && (
-                                        <div className="text-sm text-muted-foreground">
-                                            {((parseFloat(budgets[category.id]) / totalBudget) * 100 || 0).toFixed(1)}% of total budget
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+  return (
+    <div className="container mx-auto max-w-2xl py-8 px-4">
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <PiggyBank className="h-6 w-6" />
+            Budget Settings
+          </CardTitle>
+          <CardDescription>Manage your monthly spending limits</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-                            <div className="flex space-x-4">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setShowExitPrompt(true)}
-                                    disabled={saving || !isDirty}
-                                    className="w-full"
-                                >
-                                    Reset
-                                </Button>
-                                <Button
-                                    onClick={handleSaveBudgets}
-                                    className="w-full"
-                                    disabled={saving || Object.keys(errors).length > 0 || !isDirty}
-                                >
-                                    {saving ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="mr-2 h-4 w-4" />
-                                            Save Budgets
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+          <form onSubmit={handleSubmit} className="space-y-8">
+            {/* Total Budget Section */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-end">
+                <Label className="text-lg">Total Monthly Budget</Label>
+                <span className="text-sm text-muted-foreground">
+                  Allocated: ₹{getCurrentTotal()}
+                </span>
+              </div>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                <Input
+                  type="number"
+                  value={totalBudget}
+                  onChange={(e) => handleTotalBudgetChange(e.target.value)}
+                  placeholder="0.00"
+                  className="pl-8 h-12 text-lg"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              {parseFloat(totalBudget) > 0 && parseFloat(getCurrentTotal()) > parseFloat(totalBudget) && (
+                <Alert variant="warning">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>
+                    Category allocations exceed total budget by ₹
+                    {(parseFloat(getCurrentTotal()) - parseFloat(totalBudget)).toFixed(2)}
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
-            <Dialog open={showExitPrompt} onOpenChange={setShowExitPrompt}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Reset Changes</DialogTitle>
-                        <DialogDescription>
-                            Are you sure you want to reset all changes? This will restore your previously saved budgets.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setShowExitPrompt(false)}>
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleReset}
-                        >
-                            Reset Changes
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
-    );
+            <Separator />
+
+            {/* Category Budgets */}
+            <div className="space-y-6">
+              <Label className="text-lg">Category Allocations</Label>
+              {categories.map(category => (
+                <div key={category.id} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <Label className="flex items-center space-x-2">
+                      <span>{category.icon}</span>
+                      <span>{category.name}</span>
+                    </Label>
+                    <span className="text-sm text-muted-foreground">
+                      {getBudgetAllocationPercentage(budgets[category.id]).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                    <Input
+                      type="number"
+                      value={budgets[category.id]}
+                      onChange={(e) => handleInputChange(category.id, e.target.value)}
+                      placeholder="0.00"
+                      className="pl-8"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                  <Progress 
+                    value={getBudgetAllocationPercentage(budgets[category.id])}
+                    className={`h-1 ${category.color}`}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex space-x-4 pt-4">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" variant="outline" className="w-full">
+                    <RotateCcw className="mr-2 h-4 w-4" />
+                    Reset
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Reset Budget Settings?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will clear all your budget allocations. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleReset}>Reset</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
+              <Button
+                type="submit"
+                className="w-full"
+                disabled={saving}
+              >
+                {saving ? (
+                  <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-white" />
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default BudgetSettings;

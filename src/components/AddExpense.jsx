@@ -26,7 +26,8 @@ const AddExpense = ({ user }) => {
   const [budgetWarning, setBudgetWarning] = useState(null);
 
   const categories = [
-    { id: "groceries", name: "Groceries", icon: "🛒" },
+    { id: "food", name: "Food", icon: "🍽️" },
+    { id: "groceries", name: "Stationery", icon: "🛒" },
     { id: "transport", name: "Transport", icon: "🚗" },
     { id: "utilities", name: "Utilities", icon: "💡" },
     { id: "entertainment", name: "Entertainment", icon: "🎬" },
@@ -150,7 +151,7 @@ const AddExpense = ({ user }) => {
                 id="name" 
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Weekly Groceries" 
+                placeholder="e.g., Weekly Stationery" 
                 className="h-12" 
                 required
               />
