@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
 import { db } from "../firebase/firebase"
-import { format } from "date-fns"
+import { format, startOfMonth } from "date-fns"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -116,11 +116,14 @@ const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
 
 const ExpenseList = ({ user }) => {
   const [expenses, setExpenses] = useState([])
+  const [monthlyExpenses, setMonthlyExpenses] = useState([])
   const [loading, setLoading] = useState(true)
   const [totalAmount, setTotalAmount] = useState(0)
+  const [currentMonthAmount, setCurrentMonthAmount] = useState(0)
   const [budgets, setBudgets] = useState(null)
   const [activeTab, setActiveTab] = useState("all")
   const lastReminderRef = useRef(null)
+  const currentMonth = format(new Date(), "MMMM")
 
   const navigate = useNavigate()
 
@@ -237,8 +240,19 @@ const ExpenseList = ({ user }) => {
           }
         }
 
+        // Calculate current month expenses
+        const firstDayOfMonth = startOfMonth(new Date())
+        const monthlyExpensesData = expenseData.filter((expense) => {
+          const expDate = expense.date instanceof Date ? expense.date : new Date(expense.date)
+          return expDate >= firstDayOfMonth
+        })
+
+        const monthlyTotal = monthlyExpensesData.reduce((sum, exp) => sum + exp.amount, 0)
+
         setExpenses(expenseData)
+        setMonthlyExpenses(monthlyExpensesData)
         setTotalAmount(expenseData.reduce((sum, exp) => sum + exp.amount, 0))
+        setCurrentMonthAmount(monthlyTotal)
         await checkAndCreateWeeklyReminder()
         setLoading(false)
       } catch (error) {
@@ -283,8 +297,11 @@ const ExpenseList = ({ user }) => {
     })
   }
 
-  const calculateCategorySpending = (category) => {
-    return expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0)
+  // Calculate monthly category spending
+  const calculateMonthlyCategorySpending = (category) => {
+    return monthlyExpenses
+      .filter((expense) => expense.category === category)
+      .reduce((sum, expense) => sum + expense.amount, 0)
   }
 
   if (loading) {
@@ -343,9 +360,9 @@ const ExpenseList = ({ user }) => {
           <CardContent className="p-8">
             <div className="flex justify-between items-center">
               <div className="space-y-2">
-                <p className="text-xl text-primary-foreground/60">Total Expenses</p>
+                <p className="text-xl text-primary-foreground/60">{currentMonth} Expenses</p>
                 <p className="text-4xl font-bold">
-                  ₹{totalAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                  ₹{currentMonthAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
                 </p>
               </div>
               <div className="h-16 w-16 rounded-full bg-primary-foreground/10 flex items-center justify-center">
@@ -357,7 +374,7 @@ const ExpenseList = ({ user }) => {
 
         {budgets &&
           Object.entries(categories).map(([id, category]) => {
-            const spent = calculateCategorySpending(id)
+            const spent = calculateMonthlyCategorySpending(id)
             const budget = budgets[id] || 0
             if (budget > 0) {
               return <BudgetProgress key={id} category={id} categoryInfo={category} spent={spent} budget={budget} />
@@ -379,8 +396,6 @@ const ExpenseList = ({ user }) => {
               </TabsTrigger>
               {Object.entries(categories).map(([id, category]) => (
                 <TabsTrigger key={id} value={id} className="px-4 whitespace-nowrap">
-                  {" "}
-                  {/* Added whitespace-nowrap */}
                   <span className="mr-2">{category.icon}</span>
                   {category.name}
                 </TabsTrigger>
