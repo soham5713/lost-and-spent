@@ -18,6 +18,7 @@ import AddGroupExpense from "./components/AddGroupExpense"
 import SettleUp from "./components/SettleUp"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { auth } from "./firebase/firebase"
+import { Skeleton } from "@/components/ui/skeleton"
 
 // Protected Route wrapper component
 const ProtectedRoute = ({ children }) => {
@@ -37,7 +38,7 @@ const ProtectedRoute = ({ children }) => {
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+        <Skeleton className="h-12 w-12 rounded-full" />
       </div>
     )
   }
@@ -60,15 +61,15 @@ const App = () => {
       <Router>
         <div className="min-h-screen bg-background font-sans antialiased">
           <style jsx global>{`
-            @media (max-width: 475px) {
-              .xs\\:inline {
-                display: inline;
-              }
-              .xs\\:max-w-\\[220px\\] {
-                max-width: 220px;
-              }
+          @media (max-width: 475px) {
+            .xs\\:inline {
+              display: inline;
             }
-          `}</style>
+            .xs\\:max-w-\\[220px\\] {
+              max-width: 220px;
+            }
+          }
+        `}</style>
           <Routes>
             <Route
               path="/"
@@ -199,7 +200,7 @@ const PublicRoute = ({ children }) => {
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+        <Skeleton className="h-12 w-12 rounded-full" />
       </div>
     )
   }

@@ -22,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { format } from "date-fns"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Users,
   PlusCircle,
@@ -414,8 +415,28 @@ const GroupDetail = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-5xl py-16 px-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+      <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-8 w-48" />
+          </div>
+          <Skeleton className="h-10 w-32" />
+        </div>
+
+        {/* Group Summary Skeleton */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
+
+        {/* Tabs Skeleton */}
+        <div>
+          <Skeleton className="h-12 w-full mb-8" />
+          <Skeleton className="h-[500px] w-full rounded-lg" />
+        </div>
       </div>
     )
   }

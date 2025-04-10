@@ -1,23 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
-import { collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/firebase';
-import { format } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Link, useNavigate } from "react-router-dom";
-import { ReceiptIndianRupee, PlusCircle, MoreVertical, Edit2, Trash2, Calendar, Wallet } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Progress } from "@/components/ui/progress";
-import { toast } from "sonner";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { createNotification, checkBudgetAndNotify, notifyLargeExpense } from '../firebase/notificationsUtils';
+"use client"
+
+import { useState, useEffect, useRef } from "react"
+import { collection, query, orderBy, onSnapshot, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore"
+import { db } from "../firebase/firebase"
+import { format } from "date-fns"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Link, useNavigate } from "react-router-dom"
+import { ReceiptIndianRupee, PlusCircle, MoreVertical, Edit2, Trash2, Calendar, Wallet } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Progress } from "@/components/ui/progress"
+import { toast } from "sonner"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { createNotification, checkBudgetAndNotify, notifyLargeExpense } from "../firebase/notificationsUtils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const BudgetProgress = ({ category, categoryInfo, spent, budget }) => {
-  const progress = budget > 0 ? (spent / budget) * 100 : 0;
-  const isWarning = progress >= 80;
-  const isExceeded = progress > 100;
+  const progress = budget > 0 ? (spent / budget) * 100 : 0
+  const isWarning = progress >= 80
+  const isExceeded = progress > 100
 
   return (
     <Card>
@@ -31,30 +34,28 @@ const BudgetProgress = ({ category, categoryInfo, spent, budget }) => {
               <div>
                 <h3 className="text-lg font-semibold">{categoryInfo.name}</h3>
                 <p className="text-sm text-muted-foreground">
-                  {isExceeded ? 'Over budget' : `${Math.round(progress)}% used`}
+                  {isExceeded ? "Over budget" : `${Math.round(progress)}% used`}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-lg font-semibold">₹{spent.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
-              <div className="text-sm text-muted-foreground">of ₹{budget.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</div>
+              <div className="text-lg font-semibold">
+                ₹{spent.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+              </div>
+              <div className="text-sm text-muted-foreground">
+                of ₹{budget.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+              </div>
             </div>
           </div>
           <Progress
             value={Math.min(progress, 100)}
-            className={`h-3 ${
-              isExceeded 
-                ? 'bg-destructive/20' 
-                : isWarning 
-                  ? 'bg-yellow-200/20' 
-                  : 'bg-primary/20'
-            }`}
+            className={`h-3 ${isExceeded ? "bg-destructive/20" : isWarning ? "bg-yellow-200/20" : "bg-primary/20"}`}
           />
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
 const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
   <Card className="group hover:shadow-md transition-all duration-200">
@@ -70,7 +71,9 @@ const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
             </h3>
             <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
               <Calendar className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
-              <span className="shrink-0 truncate max-w-[70px] sm:max-w-full">{format(expense.date, 'MMM d, yyyy')}</span>
+              <span className="shrink-0 truncate max-w-[70px] sm:max-w-full">
+                {format(expense.date, "MMM d, yyyy")}
+              </span>
               <Badge variant="secondary" className="ml-1 text-xs shrink-0">
                 {categories[expense.category]?.name || "Other"}
               </Badge>
@@ -78,10 +81,16 @@ const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
           </div>
         </div>
         <div className="flex items-center space-x-1 sm:space-x-4 ml-2 sm:ml-4 shrink-0">
-          <span className="text-sm sm:text-xl font-semibold whitespace-nowrap">₹{expense.amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+          <span className="text-sm sm:text-xl font-semibold whitespace-nowrap">
+            ₹{expense.amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+          </span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 opacity-100 group-hover:opacity-100 transition-opacity">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 sm:h-10 sm:w-10 opacity-100 group-hover:opacity-100 transition-opacity"
+              >
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -90,7 +99,7 @@ const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
                 <Edit2 className="mr-2 h-4 w-4" />
                 Edit
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => onDelete(expense.id)}
                 className="text-destructive focus:text-destructive"
               >
@@ -103,17 +112,17 @@ const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
       </div>
     </CardContent>
   </Card>
-);
+)
 
 const ExpenseList = ({ user }) => {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [budgets, setBudgets] = useState(null);
-  const [activeTab, setActiveTab] = useState('all');
-  const lastReminderRef = useRef(null);
+  const [expenses, setExpenses] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [totalAmount, setTotalAmount] = useState(0)
+  const [budgets, setBudgets] = useState(null)
+  const [activeTab, setActiveTab] = useState("all")
+  const lastReminderRef = useRef(null)
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   const categories = {
     food: { name: "Food", icon: "🍽️" },
@@ -122,180 +131,190 @@ const ExpenseList = ({ user }) => {
     utilities: { name: "Utilities", icon: "💡" },
     entertainment: { name: "Entertainment", icon: "🎬" },
     other: { name: "Other", icon: "📝" },
-  };
+  }
 
   const createWeeklySpendingReminder = async (weeklyTotal) => {
     try {
-      const reminderDoc = doc(db, `users/${user.uid}/settings`, 'lastWeeklyReminder');
-      const now = new Date();
-      
+      const reminderDoc = doc(db, `users/${user.uid}/settings`, "lastWeeklyReminder")
+      const now = new Date()
+
       // Store the reminder timestamp
       await setDoc(reminderDoc, {
         lastReminderDate: now,
-        amount: weeklyTotal
-      });
+        amount: weeklyTotal,
+      })
 
       // Create the notification
       await createNotification(user.uid, {
-        type: 'weekly_spending',
-        title: 'Weekly Spending Update',
-        message: `You've spent ₹${weeklyTotal.toLocaleString('en-IN', { maximumFractionDigits: 2 })} this week.`,
-        createdAt: now
-      });
+        type: "weekly_spending",
+        title: "Weekly Spending Update",
+        message: `You've spent ₹${weeklyTotal.toLocaleString("en-IN", { maximumFractionDigits: 2 })} this week.`,
+        createdAt: now,
+      })
 
-      lastReminderRef.current = now;
+      lastReminderRef.current = now
     } catch (error) {
-      console.error('Error creating weekly reminder:', error);
+      console.error("Error creating weekly reminder:", error)
     }
-  };
+  }
 
   const checkAndCreateWeeklyReminder = async () => {
     try {
-      const reminderDoc = await getDoc(doc(db, `users/${user.uid}/settings`, 'lastWeeklyReminder'));
-      const now = new Date();
-      const lastReminder = reminderDoc.exists() 
-        ? reminderDoc.data().lastReminderDate.toDate() 
-        : new Date(0);
+      const reminderDoc = await getDoc(doc(db, `users/${user.uid}/settings`, "lastWeeklyReminder"))
+      const now = new Date()
+      const lastReminder = reminderDoc.exists() ? reminderDoc.data().lastReminderDate.toDate() : new Date(0)
 
-      const daysSinceLastReminder = Math.floor((now - lastReminder) / (1000 * 60 * 60 * 24));
+      const daysSinceLastReminder = Math.floor((now - lastReminder) / (1000 * 60 * 60 * 24))
 
       if (daysSinceLastReminder >= 7) {
         // Calculate spending for the current week
-        const weekStart = new Date(now);
-        weekStart.setHours(0, 0, 0, 0);
-        weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Start of current week
+        const weekStart = new Date(now)
+        weekStart.setHours(0, 0, 0, 0)
+        weekStart.setDate(weekStart.getDate() - weekStart.getDay()) // Start of current week
 
         const weeklyTotal = expenses
-          .filter(exp => {
-            const expDate = exp.date instanceof Date ? exp.date : new Date(exp.date);
-            return expDate >= weekStart;
+          .filter((exp) => {
+            const expDate = exp.date instanceof Date ? exp.date : new Date(exp.date)
+            return expDate >= weekStart
           })
-          .reduce((sum, exp) => sum + exp.amount, 0);
+          .reduce((sum, exp) => sum + exp.amount, 0)
 
-        await createWeeklySpendingReminder(weeklyTotal);
+        await createWeeklySpendingReminder(weeklyTotal)
       }
     } catch (error) {
-      console.error('Error checking weekly reminder:', error);
+      console.error("Error checking weekly reminder:", error)
     }
-  };
+  }
 
   useEffect(() => {
     const fetchBudgets = async () => {
       try {
-        const budgetDoc = await getDoc(doc(db, `users/${user.uid}/settings`, 'budgets'));
+        const budgetDoc = await getDoc(doc(db, `users/${user.uid}/settings`, "budgets"))
         if (budgetDoc.exists()) {
-          setBudgets(budgetDoc.data());
+          setBudgets(budgetDoc.data())
         }
       } catch (error) {
-        console.error('Error fetching budgets:', error);
-        toast.error("Failed to fetch budget information");
+        console.error("Error fetching budgets:", error)
+        toast.error("Failed to fetch budget information")
       }
-    };
+    }
 
-    const q = query(
-      collection(db, `users/${user.uid}/expenses`),
-      orderBy('createdAt', 'desc')
-    );
+    const q = query(collection(db, `users/${user.uid}/expenses`), orderBy("createdAt", "desc"))
 
     const unsubscribe = onSnapshot(q, async (snapshot) => {
       try {
-        const expenseData = snapshot.docs.map(doc => ({
+        const expenseData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
           date: doc.data().date?.toDate?.() || new Date(doc.data().date),
-          amount: parseFloat(doc.data().amount) || 0
-        }));
+          amount: Number.parseFloat(doc.data().amount) || 0,
+        }))
 
         // Process new expenses for notifications
-        const changes = snapshot.docChanges();
+        const changes = snapshot.docChanges()
         for (const change of changes) {
           if (change.type === "added") {
             const expense = {
               id: change.doc.id,
               ...change.doc.data(),
-              amount: parseFloat(change.doc.data().amount) || 0
-            };
+              amount: Number.parseFloat(change.doc.data().amount) || 0,
+            }
 
             // Notify for large expenses
-            await notifyLargeExpense(user.uid, expense);
+            await notifyLargeExpense(user.uid, expense)
 
             // Check budget notifications
             if (budgets) {
               const categorySpent = expenseData
-                .filter(exp => exp.category === expense.category)
-                .reduce((sum, exp) => sum + exp.amount, 0);
-              
-              const categoryBudget = budgets[expense.category];
+                .filter((exp) => exp.category === expense.category)
+                .reduce((sum, exp) => sum + exp.amount, 0)
+
+              const categoryBudget = budgets[expense.category]
               if (categoryBudget) {
-                await checkBudgetAndNotify(user.uid, expense.category, categorySpent, categoryBudget);
+                await checkBudgetAndNotify(user.uid, expense.category, categorySpent, categoryBudget)
               }
             }
           }
         }
 
-        setExpenses(expenseData);
-        setTotalAmount(expenseData.reduce((sum, exp) => sum + exp.amount, 0));
-        await checkAndCreateWeeklyReminder();
-        setLoading(false);
+        setExpenses(expenseData)
+        setTotalAmount(expenseData.reduce((sum, exp) => sum + exp.amount, 0))
+        await checkAndCreateWeeklyReminder()
+        setLoading(false)
       } catch (error) {
-        console.error('Error processing expenses:', error);
-        toast.error("Error loading expenses");
-        setLoading(false);
+        console.error("Error processing expenses:", error)
+        toast.error("Error loading expenses")
+        setLoading(false)
       }
-    });
+    })
 
-    fetchBudgets();
-    return () => unsubscribe();
-  }, [user.uid]);
+    fetchBudgets()
+    return () => unsubscribe()
+  }, [user.uid])
 
   const handleDelete = async (expenseId) => {
     try {
-      await deleteDoc(doc(db, `users/${user.uid}/expenses`, expenseId));
-      toast.success("Expense deleted successfully");
-      
+      await deleteDoc(doc(db, `users/${user.uid}/expenses`, expenseId))
+      toast.success("Expense deleted successfully")
+
       // Notify about significant deletion
-      const deletedExpense = expenses.find(exp => exp.id === expenseId);
+      const deletedExpense = expenses.find((exp) => exp.id === expenseId)
       if (deletedExpense && deletedExpense.amount >= 5000) {
         await createNotification(user.uid, {
-          type: 'expense_reminder',
-          title: 'Large Expense Deleted',
-          message: `A large expense of ₹${deletedExpense.amount.toLocaleString('en-IN')} was deleted from ${deletedExpense.category}.`
-        });
+          type: "expense_reminder",
+          title: "Large Expense Deleted",
+          message: `A large expense of ₹${deletedExpense.amount.toLocaleString("en-IN")} was deleted from ${deletedExpense.category}.`,
+        })
       }
     } catch (error) {
-      console.error('Error deleting expense:', error);
-      toast.error("Failed to delete expense");
+      console.error("Error deleting expense:", error)
+      toast.error("Failed to delete expense")
     }
-  };
+  }
 
   const handleEdit = (expense) => {
-    navigate('/add-expense', { 
-      state: { 
+    navigate("/add-expense", {
+      state: {
         expense: {
           ...expense,
-          date: expense.date instanceof Date ? expense.date : new Date(expense.date)
-        } 
-      } 
-    });
-  };
+          date: expense.date instanceof Date ? expense.date : new Date(expense.date),
+        },
+      },
+    })
+  }
 
   const calculateCategorySpending = (category) => {
-    return expenses
-      .filter(expense => expense.category === category)
-      .reduce((sum, expense) => sum + expense.amount, 0);
-  };
+    return expenses.filter((expense) => expense.category === category).reduce((sum, expense) => sum + expense.amount, 0)
+  }
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-5xl py-16 px-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary" />
+      <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8">
+        {/* Header Skeleton */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-6 w-72" />
+          </div>
+          <div className="flex space-x-4">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+
+        {/* Overview Cards Skeleton */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+
+        {/* Expenses List Skeleton */}
+        <Skeleton className="h-[600px] w-full rounded-lg" />
       </div>
-    );
+    )
   }
 
-  const filteredExpenses = activeTab === 'all' 
-    ? expenses 
-    : expenses.filter(expense => expense.category === activeTab);
+  const filteredExpenses = activeTab === "all" ? expenses : expenses.filter((expense) => expense.category === activeTab)
 
   return (
     <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8">
@@ -306,7 +325,7 @@ const ExpenseList = ({ user }) => {
           <p className="text-lg text-muted-foreground">Track and manage your spending</p>
         </div>
         <div className="flex space-x-4">
-          <Button variant="outline" onClick={() => navigate('/settings')}>
+          <Button variant="outline" onClick={() => navigate("/settings")}>
             Manage Budgets
           </Button>
           <Button asChild>
@@ -325,7 +344,9 @@ const ExpenseList = ({ user }) => {
             <div className="flex justify-between items-center">
               <div className="space-y-2">
                 <p className="text-xl text-primary-foreground/60">Total Expenses</p>
-                <p className="text-4xl font-bold">₹{totalAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
+                <p className="text-4xl font-bold">
+                  ₹{totalAmount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                </p>
               </div>
               <div className="h-16 w-16 rounded-full bg-primary-foreground/10 flex items-center justify-center">
                 <Wallet className="h-8 w-8" />
@@ -334,22 +355,15 @@ const ExpenseList = ({ user }) => {
           </CardContent>
         </Card>
 
-        {budgets && Object.entries(categories).map(([id, category]) => {
-          const spent = calculateCategorySpending(id);
-          const budget = budgets[id] || 0;
-          if (budget > 0) {
-            return (
-              <BudgetProgress
-                key={id}
-                category={id}
-                categoryInfo={category}
-                spent={spent}
-                budget={budget}
-              />
-            );
-          }
-          return null;
-        })}
+        {budgets &&
+          Object.entries(categories).map(([id, category]) => {
+            const spent = calculateCategorySpending(id)
+            const budget = budgets[id] || 0
+            if (budget > 0) {
+              return <BudgetProgress key={id} category={id} categoryInfo={category} spent={spent} budget={budget} />
+            }
+            return null
+          })}
       </div>
 
       {/* Expenses List */}
@@ -360,15 +374,19 @@ const ExpenseList = ({ user }) => {
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="mb-6 w-full justify-start space-x-2 overflow-x-auto">
-              <TabsTrigger value="all" className="px-4">All</TabsTrigger>
-              {Object.entries(categories).map(([id, category]) => (
-                <TabsTrigger key={id} value={id} className="px-4 whitespace-nowrap"> {/* Added whitespace-nowrap */}
-                <span className="mr-2">{category.icon}</span>
-                {category.name}
+              <TabsTrigger value="all" className="px-4">
+                All
               </TabsTrigger>
+              {Object.entries(categories).map(([id, category]) => (
+                <TabsTrigger key={id} value={id} className="px-4 whitespace-nowrap">
+                  {" "}
+                  {/* Added whitespace-nowrap */}
+                  <span className="mr-2">{category.icon}</span>
+                  {category.name}
+                </TabsTrigger>
               ))}
             </TabsList>
-            
+
             <ScrollArea className="h-[600px] pr-0">
               <div className="space-y-4">
                 {filteredExpenses.length > 0 ? (
@@ -386,7 +404,7 @@ const ExpenseList = ({ user }) => {
                     <ReceiptIndianRupee className="h-16 w-16 text-muted-foreground mb-6" />
                     <h3 className="text-xl font-semibold mb-2">No expenses found</h3>
                     <p className="text-muted-foreground mb-8">
-                      {activeTab === 'all'
+                      {activeTab === "all"
                         ? "Add your first expense to get started"
                         : `No expenses in ${categories[activeTab].name} category`}
                     </p>
@@ -404,7 +422,7 @@ const ExpenseList = ({ user }) => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default ExpenseList;
+export default ExpenseList

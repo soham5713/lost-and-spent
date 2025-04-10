@@ -20,6 +20,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const GroupCard = ({ group, onSelect }) => {
   return (
@@ -108,8 +109,20 @@ const GroupsList = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-5xl py-16 px-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+      <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8">
+        {/* Header Skeleton */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-6 w-72" />
+          </div>
+          <div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+
+        {/* Groups List Skeleton */}
+        <Skeleton className="h-[600px] w-full rounded-lg" />
       </div>
     )
   }
@@ -168,11 +181,7 @@ const GroupsList = ({ user }) => {
                     Cancel
                   </Button>
                   <Button type="submit" disabled={creatingGroup || !newGroupName.trim()}>
-                    {creatingGroup ? (
-                      <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-white" />
-                    ) : (
-                      "Create Group"
-                    )}
+                    {creatingGroup ? <Skeleton className="h-5 w-5 rounded-full" /> : "Create Group"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -188,7 +197,7 @@ const GroupsList = ({ user }) => {
           <CardDescription>Groups you've created or joined</CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[600px] pr-4">
+          <ScrollArea className="h-[600px]">
             {groups.length > 0 ? (
               <div className="space-y-4">
                 {groups.map((group) => (
@@ -196,7 +205,7 @@ const GroupsList = ({ user }) => {
                 ))}
               </div>
             ) : (
-              <Card className="flex flex-col items-center justify-center p-16 text-center">
+              <Card className="flex flex-col items-center justify-center p-16 text-center w-full">
                 <Users className="h-16 w-16 text-muted-foreground mb-6" />
                 <h3 className="text-xl font-semibold mb-2">No groups yet</h3>
                 <p className="text-muted-foreground mb-8">Create your first group to start tracking shared expenses</p>

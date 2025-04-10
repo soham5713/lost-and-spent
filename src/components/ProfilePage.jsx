@@ -1,39 +1,42 @@
-import React, { useState } from 'react';
-import { auth } from '../firebase/firebase';
-import { updateProfile } from 'firebase/auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
-import { User, Mail, AlertCircle, Camera } from "lucide-react";
-import { toast } from "sonner";
+"use client"
+
+import { useState } from "react"
+import { auth } from "../firebase/firebase"
+import { updateProfile } from "firebase/auth"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Separator } from "@/components/ui/separator"
+import { User, Mail, AlertCircle, Camera } from "lucide-react"
+import { toast } from "sonner"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const ProfilePage = ({ user }) => {
-  const [displayName, setDisplayName] = useState(user?.displayName || '');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [displayName, setDisplayName] = useState(user?.displayName || "")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleUpdateProfile = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
+    e.preventDefault()
+    setLoading(true)
+    setError("")
 
     try {
       await updateProfile(auth.currentUser, {
-        displayName: displayName
-      });
-      toast.success("Profile updated successfully!");
+        displayName: displayName,
+      })
+      toast.success("Profile updated successfully!")
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setError('Failed to update profile. Please try again.');
-      toast.error("Failed to update profile");
+      console.error("Error updating profile:", error)
+      setError("Failed to update profile. Please try again.")
+      toast.error("Failed to update profile")
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="container mx-auto max-w-2xl py-8 px-4">
@@ -42,26 +45,17 @@ const ProfilePage = ({ user }) => {
           <div className="flex flex-col items-center space-y-4">
             <div className="relative">
               <Avatar className="h-24 w-24">
-                <AvatarImage 
-                  src={user?.photoURL} 
-                  alt={user?.displayName}
-                  className="object-cover"
-                />
+                <AvatarImage src={user?.photoURL} alt={user?.displayName} className="object-cover" />
                 <AvatarFallback className="text-2xl">
                   {user?.displayName?.charAt(0) || user?.email?.charAt(0)}
                 </AvatarFallback>
               </Avatar>
-              <Button 
-                size="icon" 
-                variant="outline"
-                className="absolute bottom-0 right-0 rounded-full h-8 w-8"
-                disabled
-              >
+              <Button size="icon" variant="outline" className="absolute bottom-0 right-0 rounded-full h-8 w-8" disabled>
                 <Camera className="h-4 w-4" />
               </Button>
             </div>
             <div>
-              <CardTitle className="text-2xl">{user?.displayName || 'User Profile'}</CardTitle>
+              <CardTitle className="text-2xl">{user?.displayName || "User Profile"}</CardTitle>
               <CardDescription>Manage your account settings</CardDescription>
             </div>
           </div>
@@ -93,30 +87,17 @@ const ProfilePage = ({ user }) => {
                 <Label>Email Address</Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    value={user?.email}
-                    disabled
-                    className="pl-10"
-                  />
+                  <Input value={user?.email} disabled className="pl-10" />
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Email cannot be changed as you logged in with Google
-                </p>
+                <p className="text-sm text-muted-foreground">Email cannot be changed as you logged in with Google</p>
               </div>
             </div>
 
             <Separator />
 
             <div className="flex justify-end space-x-4">
-              <Button
-                type="submit"
-                disabled={loading || !displayName || displayName === user?.displayName}
-              >
-                {loading ? (
-                  <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-white" />
-                ) : (
-                  'Save Changes'
-                )}
+              <Button type="submit" disabled={loading || !displayName || displayName === user?.displayName}>
+                {loading ? <Skeleton className="h-5 w-5 rounded-full" /> : "Save Changes"}
               </Button>
             </div>
           </form>
@@ -135,7 +116,7 @@ const ProfilePage = ({ user }) => {
         </CardContent>
       </Card>
     </div>
-  );
-};
+  )
+}
 
-export default ProfilePage;
+export default ProfilePage

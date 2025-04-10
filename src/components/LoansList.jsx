@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const LoanCard = ({ loan, onEdit, onDelete, onToggleStatus }) => {
   const statusColor = loan.status === "pending" ? "bg-yellow-500" : "bg-green-500"
@@ -123,12 +124,12 @@ const LoanSummary = ({ loans }) => {
 
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      <Card className="bg-green-500/10">
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Money Lent</p>
-              <h3 className="text-2xl font-bold text-green-500">
+              <h3 className="text-2xl font-bold">
                 ₹{totalLent.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
               </h3>
             </div>
@@ -139,12 +140,12 @@ const LoanSummary = ({ loans }) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-blue-500/10">
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Money Borrowed</p>
-              <h3 className="text-2xl font-bold text-blue-500">
+              <h3 className="text-2xl font-bold">
                 ₹{totalBorrowed.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
               </h3>
             </div>
@@ -155,12 +156,12 @@ const LoanSummary = ({ loans }) => {
         </CardContent>
       </Card>
 
-      <Card className={`${netBalance >= 0 ? "bg-green-500/10" : "bg-blue-500/10"}`}>
+      <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Net Balance</p>
-              <h3 className={`text-2xl font-bold ${netBalance >= 0 ? "text-green-500" : "text-blue-500"}`}>
+              <h3 className={`text-2xl font-bold`}>
                 ₹{Math.abs(netBalance).toLocaleString("en-IN", { maximumFractionDigits: 2 })}
               </h3>
               <p className="text-xs text-muted-foreground mt-1">
@@ -261,8 +262,27 @@ const LoansList = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-5xl py-16 px-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+      <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8">
+        {/* Header Skeleton */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-48" />
+            <Skeleton className="h-6 w-72" />
+          </div>
+          <div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+
+        {/* Summary Cards Skeleton */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
+
+        {/* Loans List Skeleton */}
+        <Skeleton className="h-[600px] w-full rounded-lg mt-8" />
       </div>
     )
   }
@@ -369,7 +389,7 @@ const LoansList = ({ user }) => {
                     </LoanCard>
                   ))
                 ) : (
-                  <Card className="flex flex-col items-center justify-center p-16 text-center whitespace-nowrap">
+                  <Card className="flex flex-col items-center justify-center pt-8 pb-8 md:p-16 text-center whitespace-nowrap">
                     <HandCoins className="h-16 w-16 text-muted-foreground mb-6" />
                     <h3 className="text-xl font-semibold mb-2">No loan records found</h3>
                     <p className="text-muted-foreground mb-8">

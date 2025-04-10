@@ -664,32 +664,32 @@ const ExpenseAnalytics = ({ user }) => {
         fontSize: 10,
         color: "#333",
         fontWeight: "medium",
-      }
-    });
-  
+      },
+    })
+
     // Register fonts
     Font.register({
       family: "Courier",
       src: "https://fonts.cdnfonts.com/s/14005/CourierPrime-Regular.woff",
       fontWeight: "normal",
-    });
-  
+    })
+
     Font.register({
       family: "Helvetica-Bold",
       src: "https://fonts.cdnfonts.com/s/29334/Helvetica-Bold.woff",
       fontWeight: "bold",
-    });
-  
+    })
+
     // Sort expenses by date (newest first)
-    const sortedExpenses = [...expenses].sort((a, b) => b.date - a.date);
-    
+    const sortedExpenses = [...expenses].sort((a, b) => b.date - a.date)
+
     // Set items per page to 19 as requested
-    const ITEMS_PER_PAGE = 19;
-    
+    const ITEMS_PER_PAGE = 19
+
     // Calculate how many pages are needed for expenses
-    const totalExpenses = sortedExpenses.length;
-    const totalPagesForExpenses = Math.ceil(totalExpenses / ITEMS_PER_PAGE);
-  
+    const totalExpenses = sortedExpenses.length
+    const totalPagesForExpenses = Math.ceil(totalExpenses / ITEMS_PER_PAGE)
+
     // Helper function to get color based on category
     const getCategoryColor = (categoryName) => {
       const colorMap = {
@@ -701,11 +701,11 @@ const ExpenseAnalytics = ({ user }) => {
         Health: "#1abc9c",
         Education: "#34495e",
         Utilities: "#7f8c8d",
-      };
-      
-      return colorMap[categoryName] || "#95a5a6"; // Default color if category not found
-    };
-  
+      }
+
+      return colorMap[categoryName] || "#95a5a6" // Default color if category not found
+    }
+
     // Create table header component for reuse across pages
     const TableHeader = () => (
       <View style={[styles.tableRow, styles.tableHeader]}>
@@ -714,31 +714,20 @@ const ExpenseAnalytics = ({ user }) => {
         <Text style={[styles.headerCell, styles.categoryCell]}>Category</Text>
         <Text style={[styles.headerCell, styles.amountCell]}>Amount</Text>
       </View>
-    );
-  
+    )
+
     // Create expense row component
     const ExpenseRow = ({ expense, index }) => (
-      <View 
-        style={[
-          styles.tableRow, 
-          index % 2 !== 0 ? styles.alternateRow : {}
-        ]}
-      >
-        <Text style={[styles.tableCell, styles.dateCell]}>
-          {formatDate(expense.date, "MMM d, yyyy")}
-        </Text>
-        <Text style={[styles.tableCell, styles.nameCell]}>
-          {expense.name}
-        </Text>
+      <View style={[styles.tableRow, index % 2 !== 0 ? styles.alternateRow : {}]}>
+        <Text style={[styles.tableCell, styles.dateCell]}>{formatDate(expense.date, "MMM d, yyyy")}</Text>
+        <Text style={[styles.tableCell, styles.nameCell]}>{expense.name}</Text>
         <Text style={[styles.tableCell, styles.categoryCell]}>
           {categories[expense.category]?.name || expense.category}
         </Text>
-        <Text style={[styles.tableCell, styles.amountCell]}>
-          Rs. {expense.amount.toFixed(2)}
-        </Text>
+        <Text style={[styles.tableCell, styles.amountCell]}>Rs. {expense.amount.toFixed(2)}</Text>
       </View>
-    );
-  
+    )
+
     return (
       <Document>
         {/* First page with summary and category breakdown only */}
@@ -747,7 +736,7 @@ const ExpenseAnalytics = ({ user }) => {
           <Text style={styles.dateRange}>
             {formatDate(dateRange.from, "MMMM d, yyyy")} - {formatDate(dateRange.to, "MMMM d, yyyy")}
           </Text>
-  
+
           {/* Report Info Section */}
           <View style={styles.reportInfo}>
             <View style={styles.infoRow}>
@@ -765,7 +754,7 @@ const ExpenseAnalytics = ({ user }) => {
               </Text>
             </View>
           </View>
-  
+
           {/* Summary Section */}
           <Text style={styles.sectionTitle}>Financial Summary</Text>
           <View style={styles.summaryContainer}>
@@ -783,9 +772,7 @@ const ExpenseAnalytics = ({ user }) => {
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Highest Expense:</Text>
-              <Text style={styles.summaryValue}>
-                Rs. {Math.max(...expenses.map(e => e.amount)).toFixed(2)}
-              </Text>
+              <Text style={styles.summaryValue}>Rs. {Math.max(...expenses.map((e) => e.amount)).toFixed(2)}</Text>
             </View>
             {summaryData.mostExpensiveCategory && (
               <View style={styles.summaryRow}>
@@ -796,79 +783,65 @@ const ExpenseAnalytics = ({ user }) => {
               </View>
             )}
           </View>
-  
+
           {/* Category Breakdown */}
           <Text style={styles.sectionTitle}>Category Breakdown</Text>
           <View style={styles.categorySection}>
             {categoryData.map((category, index) => (
-              <View 
-                key={index} 
-                style={[
-                  styles.categoryRow, 
-                  { borderLeftColor: getCategoryColor(category.name) }
-                ]}
-              >
+              <View key={index} style={[styles.categoryRow, { borderLeftColor: getCategoryColor(category.name) }]}>
                 <Text style={styles.categoryName}>{category.name}</Text>
                 <Text style={styles.categoryAmount}>Rs. {category.value.toFixed(2)}</Text>
               </View>
             ))}
           </View>
 
-          <Text style={styles.footer}>
-            Generated on {formatDate(new Date(), "MMMM d, yyyy")} • Lost & Spent
-          </Text>
+          <Text style={styles.footer}>Generated on {formatDate(new Date(), "MMMM d, yyyy")} • Lost & Spent</Text>
           <Text
             style={styles.pageNumber}
             render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
             fixed
           />
         </Page>
-  
+
         {/* Create pages for expense details (20 items per page) */}
         {Array.from({ length: totalPagesForExpenses }).map((_, pageIndex) => {
-          const startIndex = pageIndex * ITEMS_PER_PAGE;
-          const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, sortedExpenses.length);
-          const pageExpenses = sortedExpenses.slice(startIndex, endIndex);
-          
+          const startIndex = pageIndex * ITEMS_PER_PAGE
+          const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, sortedExpenses.length)
+          const pageExpenses = sortedExpenses.slice(startIndex, endIndex)
+
           return (
             <Page key={pageIndex} size="A4" style={styles.page}>
               <Text style={[styles.header, { fontSize: 20 }]}>Expense Report</Text>
               <Text style={styles.dateRange}>
                 {formatDate(dateRange.from, "MMMM d, yyyy")} - {formatDate(dateRange.to, "MMMM d, yyyy")}
               </Text>
-              
+
               <Text style={styles.sectionTitle}>Expense Details</Text>
               <View style={styles.tableContainer}>
                 <View style={styles.table}>
                   <TableHeader />
                   {pageExpenses.map((expense, index) => (
-                    <ExpenseRow 
-                      key={startIndex + index} 
-                      expense={expense} 
-                      index={startIndex + index} 
-                    />
+                    <ExpenseRow key={startIndex + index} expense={expense} index={startIndex + index} />
                   ))}
                 </View>
-                
+
                 {pageIndex < totalPagesForExpenses - 1 && (
                   <Text style={styles.continueText}>Continued on next page...</Text>
                 )}
               </View>
-  
-              <Text style={styles.footer}>
-                Generated on {formatDate(new Date(), "MMMM d, yyyy")} • Lost & Spent
-              </Text>
+
+              <Text style={styles.footer}>Generated on {formatDate(new Date(), "MMMM d, yyyy")} • Lost & Spent</Text>
               <Text
                 style={styles.pageNumber}
                 render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
                 fixed
               />
             </Page>
-          );
+          )
         })}
       </Document>
-    );
-  };
+    )
+  }
 
   // Replace the exportToCSV function with this new function
   const exportToPdf = () => {
@@ -886,19 +859,19 @@ const ExpenseAnalytics = ({ user }) => {
       <div className="container mx-auto max-w-6xl py-8 px-4">
         <div className="flex flex-col space-y-8">
           <div className="flex justify-between items-center">
-            <h1 className="text-3xl font-bold tracking-tight">Expense Analytics</h1>
+            <Skeleton className="h-10 w-48" />
             <Skeleton className="h-10 w-32" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} className="h-32" />
+              <Skeleton key={i} className="h-32 w-full" />
             ))}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Skeleton className="h-[400px]" />
-            <Skeleton className="h-[400px]" />
+            <Skeleton className="h-[400px] w-full" />
+            <Skeleton className="h-[400px] w-full" />
           </div>
         </div>
       </div>
@@ -940,7 +913,7 @@ const ExpenseAnalytics = ({ user }) => {
               {({ blob, url, loading, error }) => (
                 <Button variant="outline" disabled={loading} title="Export to PDF">
                   {loading ? (
-                    <span className="animate-spin rounded-full h-4 w-4 border-t-2 border-primary" />
+                    <Skeleton className="h-4 w-4" />
                   ) : (
                     <>
                       <Download className="h-4 w-4 mr-2" />
@@ -961,7 +934,7 @@ const ExpenseAnalytics = ({ user }) => {
         )}
 
         <Tabs defaultValue="overview" value={selectedTab} onValueChange={setSelectedTab}>
-          <TabsList className="mb-4">
+          <TabsList className="mb-6 w-full justify-start space-x-2 overflow-x-auto">
             <TabsTrigger value="overview">
               <Search className="h-4 w-4 mr-2" />
               Overview
@@ -1120,7 +1093,7 @@ const ExpenseAnalytics = ({ user }) => {
                     </ResponsiveContainer>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2 mt-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
                     {categoryData.map((category, index) => (
                       <div
                         key={index}
@@ -1155,7 +1128,7 @@ const ExpenseAnalytics = ({ user }) => {
                 <CardContent>
                   <div className="h-[380px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={dailyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                      <AreaChart data={dailyData} margin={{ top: 20, right: 30, left: -20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" opacity={0.3} />
                         <XAxis dataKey="date" />
                         <YAxis />

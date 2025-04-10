@@ -15,6 +15,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { format } from "date-fns"
 import { ArrowLeft, CalendarIcon, ReceiptIndianRupee, DollarSign, Users } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const SplitMemberRow = ({ member, amount, onAmountChange, disabled = false }) => {
   return (
@@ -192,8 +193,9 @@ const AddGroupExpense = ({ user }) => {
 
   if (loading) {
     return (
-      <div className="container mx-auto max-w-md py-16 px-4 flex justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
+      <div className="container mx-auto max-w-md py-8 px-4">
+        <Skeleton className="h-10 w-20 mb-6" /> {/* Back button */}
+        <Skeleton className="h-[800px] w-full rounded-lg" />
       </div>
     )
   }
@@ -381,11 +383,7 @@ const AddGroupExpense = ({ user }) => {
                 Cancel
               </Button>
               <Button type="submit" className="w-full h-12" disabled={submitting || !validateSplits()}>
-                {submitting ? (
-                  <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-white" />
-                ) : (
-                  "Add Expense"
-                )}
+                {submitting ? <Skeleton className="h-5 w-5 rounded-full" /> : "Add Expense"}
               </Button>
             </div>
           </form>

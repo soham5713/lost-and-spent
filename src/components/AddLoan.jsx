@@ -16,6 +16,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns"
 import { HandCoins, Save, CalendarIcon, ArrowUpRight, ArrowDownRight, Clock } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const AddLoan = ({ user }) => {
   const navigate = useNavigate()
@@ -238,7 +239,7 @@ const AddLoan = ({ user }) => {
               </Button>
               <Button type="submit" className="w-full h-12" disabled={loading}>
                 {loading ? (
-                  <span className="animate-spin rounded-full h-5 w-5 border-t-2 border-white" />
+                  <Skeleton className="h-5 w-5 rounded-full" />
                 ) : (
                   <>
                     <Save className="mr-2 h-5 w-5" />
