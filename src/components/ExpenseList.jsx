@@ -58,30 +58,30 @@ const BudgetProgress = ({ category, categoryInfo, spent, budget }) => {
 
 const ExpenseCard = ({ expense, categories, onEdit, onDelete }) => (
   <Card className="group hover:shadow-md transition-all duration-200">
-    <CardContent className="p-6">
+    <CardContent className="p-4 sm:p-6">
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4 min-w-0"> {/* Added min-w-0 to allow truncation */}
-          <div className="h-14 w-14 shrink-0 rounded-full bg-primary/10 flex items-center justify-center">
-            <span className="text-2xl">{categories[expense.category]?.icon || "📝"}</span>
+        <div className="flex items-center sm:space-x-4 min-w-0">
+          <div className="h-10 w-10 sm:h-14 sm:w-14 shrink-0 rounded-full bg-primary/10 md:flex items-center justify-center hidden">
+            <span className="text-xl sm:text-2xl">{categories[expense.category]?.icon || "📝"}</span>
           </div>
-          <div className="space-y-1 min-w-0"> {/* Added min-w-0 to allow truncation */}
-            <h3 className="text-lg font-semibold truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]">
+          <div className="space-y-1 min-w-0">
+            <h3 className="text-base sm:text-lg font-semibold truncate max-w-[150px] sm:max-w-[200px] md:max-w-[400px]">
               {expense.name}
             </h3>
-            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-              <Calendar className="h-4 w-4 shrink-0" />
-              <span className="shrink-0">{format(expense.date, 'MMM d, yyyy')}</span>
-              <Badge variant="secondary" className="ml-2 shrink-0">
+            <div className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
+              <Calendar className="h-3 w-3 sm:h-4 sm:w-4 shrink-0" />
+              <span className="shrink-0 truncate max-w-[70px] sm:max-w-full">{format(expense.date, 'MMM d, yyyy')}</span>
+              <Badge variant="secondary" className="ml-1 text-xs shrink-0">
                 {categories[expense.category]?.name || "Other"}
               </Badge>
             </div>
           </div>
         </div>
-        <div className="flex items-center space-x-4 ml-4 shrink-0">
-          <span className="text-xl font-semibold">₹{expense.amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
+        <div className="flex items-center space-x-1 sm:space-x-4 ml-2 sm:ml-4 shrink-0">
+          <span className="text-sm sm:text-xl font-semibold whitespace-nowrap">₹{expense.amount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 opacity-100 group-hover:opacity-100 transition-opacity">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -369,7 +369,7 @@ const ExpenseList = ({ user }) => {
               ))}
             </TabsList>
             
-            <ScrollArea className="h-[600px] pr-4">
+            <ScrollArea className="h-[600px] pr-0">
               <div className="space-y-4">
                 {filteredExpenses.length > 0 ? (
                   filteredExpenses.map((expense) => (

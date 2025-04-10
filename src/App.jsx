@@ -1,41 +1,43 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from "react-router-dom";
-import AddExpense from "./components/AddExpense";
-import BudgetSettings from "./components/BudgetSettings";
-import ExpenseList from "./components/ExpenseList";
-import ExpenseAnalytics from "./components/ExpenseAnalytics";
-import LoginPage from "./components/LoginPage";
-import Navbar from "./components/Navbar";
-import ProfilePage from "./components/ProfilePage";
-import Notifications from "./components/Notifications";
-import { ThemeProvider } from "@/components/ui/theme-provider";
-import { auth } from "./firebase/firebase";
+"use client"
+
+import React, { useState, useEffect } from "react"
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from "react-router-dom"
+import AddExpense from "./components/AddExpense"
+import BudgetSettings from "./components/BudgetSettings"
+import ExpenseList from "./components/ExpenseList"
+import ExpenseAnalytics from "./components/ExpenseAnalytics"
+import LoginPage from "./components/LoginPage"
+import Navbar from "./components/Navbar"
+import ProfilePage from "./components/ProfilePage"
+import Notifications from "./components/Notifications"
+import { ThemeProvider } from "@/components/ui/theme-provider"
+import { auth } from "./firebase/firebase"
 
 // Protected Route wrapper component
 const ProtectedRoute = ({ children }) => {
-  const [authChecked, setAuthChecked] = useState(false);
-  const [user, setUser] = useState(null);
-  const location = useLocation();
+  const [authChecked, setAuthChecked] = useState(false)
+  const [user, setUser] = useState(null)
+  const location = useLocation()
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-      setAuthChecked(true);
-    });
+      setUser(user)
+      setAuthChecked(true)
+    })
 
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe()
+  }, [])
 
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   if (!user) {
-    return <Navigate to="/" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />
   }
 
   return (
@@ -43,22 +45,32 @@ const ProtectedRoute = ({ children }) => {
       <Navbar user={user} />
       {React.cloneElement(children, { user })}
     </>
-  );
-};
+  )
+}
 
 const App = () => {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="expense-tracker-theme">
       <Router>
         <div className="min-h-screen bg-background font-sans antialiased">
+          <style jsx global>{`
+            @media (max-width: 475px) {
+              .xs\\:inline {
+                display: inline;
+              }
+              .xs\\:max-w-\\[220px\\] {
+                max-width: 220px;
+              }
+            }
+          `}</style>
           <Routes>
-            <Route 
-              path="/" 
+            <Route
+              path="/"
               element={
                 <PublicRoute>
                   <LoginPage />
                 </PublicRoute>
-              } 
+              }
             />
             <Route
               path="/add-expense"
@@ -112,36 +124,36 @@ const App = () => {
         </div>
       </Router>
     </ThemeProvider>
-  );
-};
+  )
+}
 
 // Public Route wrapper component for the login page
 const PublicRoute = ({ children }) => {
-  const [authChecked, setAuthChecked] = useState(false);
-  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
-      setUser(user);
-      setAuthChecked(true);
-    });
+      setUser(user)
+      setAuthChecked(true)
+    })
 
-    return () => unsubscribe();
-  }, []);
+    return () => unsubscribe()
+  }, [])
 
   if (!authChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-primary"></div>
       </div>
-    );
+    )
   }
 
   if (user) {
-    return <Navigate to="/add-expense" replace />;
+    return <Navigate to="/add-expense" replace />
   }
 
-  return children;
-};
+  return children
+}
 
-export default App;
+export default App
