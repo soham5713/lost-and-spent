@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { useNavigate, Link, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Receipt, LogOut, Settings, User, Bell, BarChart, PlusCircle } from "lucide-react"
+import { Receipt, LogOut, Settings, User, Bell, BarChart, PlusCircle, HandCoins, Users } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,7 +30,7 @@ const Navbar = ({ user, unreadCount = 0 }) => {
   }
 
   const isActiveRoute = (path) => {
-    return location.pathname === path
+    return location.pathname === path || location.pathname.startsWith(`${path}/`)
   }
 
   return (
@@ -63,6 +63,22 @@ const Navbar = ({ user, unreadCount = 0 }) => {
                 <BarChart className="mr-2 h-4 w-4" />
                 <span className="hidden lg:inline">Analytics</span>
               </Button>
+              <Button
+                variant={isActiveRoute("/loans") ? "default" : "ghost"}
+                className="h-9"
+                onClick={() => navigate("/loans")}
+              >
+                <HandCoins className="mr-2 h-4 w-4" />
+                <span className="hidden lg:inline">Loans</span>
+              </Button>
+              <Button
+                variant={isActiveRoute("/groups") ? "default" : "ghost"}
+                className="h-9"
+                onClick={() => navigate("/groups")}
+              >
+                <Users className="mr-2 h-4 w-4" />
+                <span className="hidden lg:inline">Groups</span>
+              </Button>
             </div>
           </div>
 
@@ -82,6 +98,14 @@ const Navbar = ({ user, unreadCount = 0 }) => {
                   <DropdownMenuItem onClick={() => navigate("/analytics")}>
                     <BarChart className="mr-2 h-4 w-4" />
                     Analytics
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/loans")}>
+                    <HandCoins className="mr-2 h-4 w-4" />
+                    Loans
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/groups")}>
+                    <Users className="mr-2 h-4 w-4" />
+                    Groups
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/add-expense")}>
                     <PlusCircle className="mr-2 h-4 w-4" />

@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Receipt } from "lucide-react";
+import { ReceiptIndianRupee } from "lucide-react";
 import { useNavigate } from "react-router-dom"; // Added for proper navigation
 
 const LoginPage = () => {
@@ -59,7 +59,7 @@ const LoginPage = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <Receipt className="h-12 w-12 text-primary" />
+            <ReceiptIndianRupee className="h-12 w-12 text-primary" />
           </div>
           <CardTitle className="text-2xl">Welcome to Expense Tracker</CardTitle>
           <CardDescription>Sign in to manage your expenses</CardDescription>

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Link, useNavigate } from "react-router-dom";
-import { Receipt, PlusCircle, MoreVertical, Edit2, Trash2, Calendar, Wallet } from "lucide-react";
+import { ReceiptIndianRupee, PlusCircle, MoreVertical, Edit2, Trash2, Calendar, Wallet } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -383,7 +383,7 @@ const ExpenseList = ({ user }) => {
                   ))
                 ) : (
                   <Card className="flex flex-col items-center justify-center p-16 text-center whitespace-nowrap">
-                    <Receipt className="h-16 w-16 text-muted-foreground mb-6" />
+                    <ReceiptIndianRupee className="h-16 w-16 text-muted-foreground mb-6" />
                     <h3 className="text-xl font-semibold mb-2">No expenses found</h3>
                     <p className="text-muted-foreground mb-8">
                       {activeTab === 'all'

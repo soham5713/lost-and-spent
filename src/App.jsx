@@ -10,6 +10,12 @@ import LoginPage from "./components/LoginPage"
 import Navbar from "./components/Navbar"
 import ProfilePage from "./components/ProfilePage"
 import Notifications from "./components/Notifications"
+import LoansList from "./components/LoansList"
+import AddLoan from "./components/AddLoan"
+import GroupsList from "./components/GroupsList"
+import GroupDetail from "./components/GroupDetail"
+import AddGroupExpense from "./components/AddGroupExpense"
+import SettleUp from "./components/SettleUp"
 import { ThemeProvider } from "@/components/ui/theme-provider"
 import { auth } from "./firebase/firebase"
 
@@ -120,6 +126,55 @@ const App = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/loans"
+              element={
+                <ProtectedRoute>
+                  <LoansList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/add-loan"
+              element={
+                <ProtectedRoute>
+                  <AddLoan />
+                </ProtectedRoute>
+              }
+            />
+            {/* Group Routes */}
+            <Route
+              path="/groups"
+              element={
+                <ProtectedRoute>
+                  <GroupsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupId"
+              element={
+                <ProtectedRoute>
+                  <GroupDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupId/add-expense"
+              element={
+                <ProtectedRoute>
+                  <AddGroupExpense />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/groups/:groupId/settle"
+              element={
+                <ProtectedRoute>
+                  <SettleUp />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </div>
       </Router>
@@ -150,7 +205,7 @@ const PublicRoute = ({ children }) => {
   }
 
   if (user) {
-    return <Navigate to="/add-expense" replace />
+    return <Navigate to="/expenses" replace />
   }
 
   return children

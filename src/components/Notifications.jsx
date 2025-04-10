@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format, startOfWeek } from 'date-fns';
-import { AlertCircle, Bell, CheckCircle2, Receipt } from 'lucide-react';
+import { AlertCircle, Bell, CheckCircle2, ReceiptIndianRupee } from 'lucide-react';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from 'sonner';
 
@@ -17,7 +17,7 @@ const NotificationCard = ({ notification, onMarkAsRead }) => {
       case 'budget_exceeded':
         return <AlertCircle className="h-6 w-6 text-destructive" />;
       case 'expense_reminder':
-        return <Receipt className="h-6 w-6 text-primary" />;
+        return <ReceiptIndianRupee className="h-6 w-6 text-primary" />;
       default:
         return <Bell className="h-6 w-6 text-muted-foreground" />;
     }
