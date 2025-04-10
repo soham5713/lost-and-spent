@@ -59,7 +59,7 @@ Lost-and-Spent is a modern expense tracker application designed to simplify pers
 ### Phase 2: Advanced Features
 - [ ] Implement analytics and reporting.
 - [ ] Add budgeting functionality.
-- [ ] Enable receipt upload with cloud storage (e.g., Firebase Storage).
+- [ ] Enable ReceiptIndianRupee upload with cloud storage (e.g., Firebase Storage).
 
 ### Phase 3: Testing and Deployment
 - [ ] Conduct unit and integration testing.

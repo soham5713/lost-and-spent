@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { useNavigate, Link, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Receipt, LogOut, Settings, User, Bell, BarChart, PlusCircle, HandCoins, Users } from "lucide-react"
+import { ReceiptIndianRupee, LogOut, Settings, User, Bell, BarChart, PlusCircle, HandCoins, Users, IndianRupee } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,8 +42,8 @@ const Navbar = ({ user, unreadCount = 0 }) => {
               to="/expenses"
               className="flex items-center space-x-2 sm:space-x-3 transition-colors hover:text-primary"
             >
-              <Receipt className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              <span className="font-semibold text-base sm:text-lg hidden sm:inline-block">Expense Tracker</span>
+              <ReceiptIndianRupee className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+              <span className="font-semibold text-base sm:text-lg hidden sm:inline-block">Lost & Spent</span>
             </Link>
 
             <div className="hidden md:flex space-x-2 lg:space-x-4">
@@ -52,7 +52,7 @@ const Navbar = ({ user, unreadCount = 0 }) => {
                 className="h-9"
                 onClick={() => navigate("/expenses")}
               >
-                <Receipt className="mr-2 h-4 w-4" />
+                <IndianRupee className="mr-2 h-4 w-4" />
                 <span className="hidden lg:inline">Expenses</span>
               </Button>
               <Button
@@ -87,12 +87,12 @@ const Navbar = ({ user, unreadCount = 0 }) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon">
-                    <Receipt className="h-5 w-5" />
+                    <ReceiptIndianRupee className="h-5 w-5" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem onClick={() => navigate("/expenses")}>
-                    <Receipt className="mr-2 h-4 w-4" />
+                    <ReceiptIndianRupee className="mr-2 h-4 w-4" />
                     Expenses
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate("/analytics")}>

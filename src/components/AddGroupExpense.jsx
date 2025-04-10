@@ -14,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { format } from "date-fns"
-import { ArrowLeft, CalendarIcon, Receipt, DollarSign, Users } from "lucide-react"
+import { ArrowLeft, CalendarIcon, ReceiptIndianRupee, DollarSign, Users } from "lucide-react"
 
 const SplitMemberRow = ({ member, amount, onAmountChange, disabled = false }) => {
   return (
@@ -213,7 +213,7 @@ const AddGroupExpense = ({ user }) => {
       <Card className="shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl flex items-center gap-2">
-            <Receipt className="h-6 w-6" />
+            <ReceiptIndianRupee className="h-6 w-6" />
             Add Group Expense
           </CardTitle>
           <CardDescription>Add an expense to {groupData?.name} and split it among members</CardDescription>
@@ -338,7 +338,7 @@ const AddGroupExpense = ({ user }) => {
                   }`}
                 >
                   <RadioGroupItem value="custom" id="custom" className="sr-only" />
-                  <Receipt className="h-6 w-6 mb-2" />
+                  <ReceiptIndianRupee className="h-6 w-6 mb-2" />
                   <span className="text-center text-sm">Custom</span>
                 </Label>
               </RadioGroup>

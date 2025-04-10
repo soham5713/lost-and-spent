@@ -10,6 +10,7 @@ import {
   calculateSimplifiedDebts,
   addGroupMember,
   removeGroupMember,
+  deleteGroup,
 } from "../firebase/groupUtils"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -33,6 +34,7 @@ import {
   Calendar,
   DollarSign,
   ArrowRight,
+  Trash2,
 } from "lucide-react"
 import {
   Dialog,
@@ -397,6 +399,19 @@ const GroupDetail = ({ user }) => {
     }
   }
 
+  const handleDeleteGroup = async () => {
+    try {
+      setLoading(true)
+      await deleteGroup(groupId, user.uid)
+      toast.success("Group deleted successfully")
+      navigate("/groups")
+    } catch (error) {
+      console.error("Error deleting group:", error)
+      toast.error(error.message || "Failed to delete group")
+      setLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="container mx-auto max-w-5xl py-16 px-4 flex justify-center">
@@ -430,12 +445,40 @@ const GroupDetail = ({ user }) => {
   return (
     <div className="container mx-auto max-w-5xl py-8 px-4 space-y-8">
       {/* Header Section */}
-      <div className="flex items-center space-x-4">
-        <Button variant="outline" onClick={() => navigate("/groups")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
-        <h1 className="text-3xl font-bold truncate">{groupData.name}</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          <Button variant="outline" onClick={() => navigate("/groups")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back
+          </Button>
+          <h1 className="text-3xl font-bold truncate">{groupData.name}</h1>
+        </div>
+
+        {groupData.createdBy === user.uid && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm">
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Group
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Group</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete this group? This will permanently remove all expenses, balances, and
+                  settlement records. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDeleteGroup} className="bg-destructive text-destructive-foreground">
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       {/* Group Summary */}
